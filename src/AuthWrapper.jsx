@@ -80,16 +80,9 @@ function AuthWrapper() {
               transition={{ delay: 0.3 }}
               className="text-xs font-semibold tracking-[0.35em] text-teal-400/70 uppercase"
             >
-              Government College of Engineering
+              Government College of Engineering Srirangam
             </motion.p>
-            <motion.h1
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-              className="text-4xl lg:text-5xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-b from-white to-teal-200"
-            >
-              SRIRANGAM
-            </motion.h1>
+
             <motion.div
               initial={{ scaleX: 0 }}
               animate={{ scaleX: 1 }}
@@ -105,7 +98,7 @@ function AuthWrapper() {
             transition={{ delay: 0.7 }}
             className="text-sm text-teal-100/40 leading-relaxed max-w-xs font-medium tracking-wide"
           >
-            Mess Reduction Portal — Streamlining college meal management with precision and transparency.
+  
           </motion.p>
 
           {/* Stats row */}
@@ -131,19 +124,19 @@ function AuthWrapper() {
       <div className="flex-1 flex flex-col min-h-[100dvh] md:min-h-0 z-10 relative">
 
         {/* Mobile-only compact header */}
-        <div className="flex md:hidden items-center gap-3 px-5 pt-5 pb-3 shrink-0">
+        <div className="flex md:hidden items-center gap-1 px-3 pt-5 pb-3 shrink-0">
           <img src={image} alt="logo" className="w-9 h-9 object-contain" />
           <div>
             <p className="text-[9px] font-bold tracking-[0.2em] text-teal-400/70 uppercase leading-none">Government College of Engineering</p>
-            <p className="text-sm font-black text-white tracking-wider leading-tight">SRIRANGAM</p>
+            <p className="text-sm font-black text-white ">SRIRANGAM</p>
           </div>
         </div>
 
         {/* Divider line mobile */}
         <div className="md:hidden h-px mx-5 bg-gradient-to-r from-transparent via-teal-500/25 to-transparent shrink-0" />
 
-        {/* Form area — centers vertically on desktop, fills on mobile */}
-        <div className="flex-1 flex items-center justify-center p-4 md:p-8 lg:p-12">
+        {/* Form area — top-aligned on mobile, centred on desktop */}
+        <div className="flex-1 flex items-start md:items-center justify-center pt-6 md:pt-0 pb-4 md:pb-0 px-4 md:p-8 lg:p-12">
           <div style={{ perspective: "1500px" }} className="w-full max-w-[420px]">
             <AnimatePresence mode="wait">
               {isLogin ? (
