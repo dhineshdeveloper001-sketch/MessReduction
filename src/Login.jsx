@@ -1,5 +1,5 @@
 import { motion } from "framer-motion"
-import { FiUser, FiHash, FiArrowRight } from "react-icons/fi"
+import { FiMail, FiCalendar, FiArrowRight } from "react-icons/fi"
 
 const TITLE = "LOGIN"
 
@@ -8,7 +8,7 @@ const getInitial = () => {
   const side = sides[Math.floor(Math.random() * sides.length)]
   const d = 250, v = Math.floor(Math.random() * 60) - 30
   const r = Math.floor(Math.random() * 240) - 120
-  const pos = { top: [v,-d], bottom: [v,d], left: [-d,v], right: [d,v] }[side]
+  const pos = { top: [v, -d], bottom: [v, d], left: [-d, v], right: [d, v] }[side]
   return { x: pos[0], y: pos[1], rotate: r, opacity: 0, scale: 0.5 }
 }
 
@@ -30,8 +30,10 @@ function AnimatedTitle() {
             className="inline-block cursor-default"
             variants={{
               hidden: getInitial(),
-              visible: { opacity: 1, scale: 1, x: 0, y: 0, rotate: 0,
-                transition: { type: "spring", stiffness: 200, damping: 22 } },
+              visible: {
+                opacity: 1, scale: 1, x: 0, y: 0, rotate: 0,
+                transition: { type: "spring", stiffness: 200, damping: 22 }
+              },
             }}
             whileHover={{ scale: 1.15, color: "#2dd4bf" }}
           >
@@ -60,23 +62,14 @@ function Login({ goToRegister }) {
       <AnimatedTitle />
 
       <Field
-        icon={<FiUser size={15} />}
-        type="text" inputMode="numeric" pattern="[0-9]*"
-        placeholder="Register number"
-        onKeyDown={(e) => {
-          if (!/[0-9]/.test(e.key) && !["Backspace","Delete","ArrowLeft","ArrowRight","Tab"].includes(e.key))
-            e.preventDefault()
-        }}
+        icon={<FiMail size={15} />}
+        type="email" placeholder="Email address"
       />
       <Field
-        icon={<FiHash size={15} />}
-        type="text" inputMode="text" pattern="[a-zA-Z0-9]*"
-        placeholder="Roll number"
-        onKeyDown={(e) => {
-          if (!/[a-zA-Z0-9]/.test(e.key) && !["Backspace","Delete","ArrowLeft","ArrowRight","Tab"].includes(e.key))
-            e.preventDefault()
-        }}
-        onInput={(e) => { e.target.value = e.target.value.replace(/[^a-zA-Z0-9]/g, "") }}
+        icon={<FiCalendar size={15} />}
+        type="text" placeholder="Date of birth"
+        onFocus={(e) => (e.target.type = "date")}
+        onBlur={(e) => { if (!e.target.value) e.target.type = "text" }}
       />
 
       <motion.button
