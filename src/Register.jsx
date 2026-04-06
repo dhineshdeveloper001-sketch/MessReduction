@@ -111,7 +111,7 @@ function Register({ goToLogin }) {
         <Field icon={<FiBookOpen />}>
           <select className={`${inp} appearance-none cursor-pointer`}>
             <option value="" className="bg-[#0f1f38] text-white/40">Select Department</option>
-            {["CSE", "ECE", "EEE", "CIVIL", "MECH"].map(d => (
+            {["CSE", "ECE", "EEE", "CIVIL", "MECH", "MECHATRONICS"].map(d => (
               <option key={d} className="bg-[#0f1f38] text-white">{d}</option>
             ))}
           </select>

@@ -14,7 +14,7 @@ import MessReductionPage from './MessReductionPage.jsx'
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <>
-      <AuthWrapper />
+      <MessReductionPage />
     </>
   </StrictMode>
 )
