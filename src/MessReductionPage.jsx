@@ -51,10 +51,10 @@ function AnimatedTitle() {
 
 function Field({ icon, as: Component = "input", children, ...props }) {
     return (
-        <div className="flex items-center gap-3 rounded-xl border border-white/8 bg-white/4 px-4 py-3 focus-within:border-teal-500/60 focus-within:bg-teal-950/20 transition-colors duration-200">
+        <div className="flex items-center gap-3 rounded-xl border border-white/8 bg-white/4 px-4 py-3.5 focus-within:border-teal-500/60 focus-within:bg-teal-950/20 transition-colors duration-200">
             <span className="text-teal-400/60 shrink-0">{icon}</span>
             <Component
-                className="flex-1 bg-transparent focus:outline-none text-sm text-white placeholder:text-white/25 font-medium appearance-none w-full"
+                className="flex-1 bg-transparent focus:outline-none text-base text-white placeholder:text-white/25 font-medium appearance-none w-full"
                 {...props}
             >
                 {children}
@@ -386,9 +386,9 @@ function MessReductionPage() {
                         </div>
 
                         <div className="w-full rounded-2xl border border-white/8 bg-[#0f1f38] shadow-xl overflow-hidden mt-8">
-                            <div className="p-8 sm:p-12 lg:p-16">
-                                <div className="flex items-center gap-3 mb-8">
-                                    <h3 className="text-xl font-bold text-white tracking-tight">MY APPLICATIONS</h3>
+                            <div className="p-5 sm:p-8 md:p-12 lg:p-16">
+                                <div className="flex items-center gap-3 mb-6 sm:mb-8">
+                                    <h3 className="text-lg sm:text-xl font-bold text-white tracking-tight">MY APPLICATIONS</h3>
                                     <div className="flex-1 h-px bg-white/5" />
                                 </div>
                                 <div className="space-y-4">

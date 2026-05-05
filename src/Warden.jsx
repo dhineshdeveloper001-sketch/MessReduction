@@ -153,92 +153,92 @@ const Warden = ({ assignedYear = null, onLogout }) => {
     return (
         <div className="min-h-screen w-full bg-[#0a1628] text-white font-sans selection:bg-teal-500/30">
             {/* ── Header ── */}
-            <header className="w-full flex items-center justify-between px-10 py-6 border-b border-white/5 bg-[#0a1628]/80 backdrop-blur-xl sticky top-0 z-50 gap-4 flex-wrap">
-                <div className="flex items-center gap-5">
+            <header className="w-full flex items-center justify-between px-5 sm:px-10 py-4 sm:py-6 border-b border-white/5 bg-[#0a1628]/80 backdrop-blur-xl sticky top-0 z-50 gap-3 flex-wrap">
+                <div className="flex items-center gap-3 sm:gap-5">
                     <div className={`p-2 ${t.ring} rounded-2xl border ${t.border}`}>
-                        <img src={logo} alt="Logo" className="w-11 h-11 object-contain" />
+                        <img src={logo} alt="Logo" className="w-9 h-9 sm:w-11 sm:h-11 object-contain" />
                     </div>
                     <div className="flex flex-col">
-                        <span className={`text-sm font-black tracking-[.3em] ${t.text} uppercase`}>Authority Panel</span>
-                        <span className="text-3xl font-black text-white tracking-widest uppercase">Chief Warden</span>
+                        <span className={`text-xs sm:text-sm font-black tracking-[.3em] ${t.text} uppercase`}>Authority Panel</span>
+                        <span className="text-xl sm:text-3xl font-black text-white tracking-widest uppercase">Chief Warden</span>
                     </div>
                 </div>
 
                 {/* Year badge — show switch only when NOT locked to a URL endpoint */}
-                <div className="flex items-center gap-4">
-                    <div className={`flex items-center gap-2 px-4 py-2 ${t.ring} border ${t.border} rounded-2xl`}>
+                <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
+                    <div className={`flex items-center gap-2 px-3 sm:px-4 py-2 ${t.ring} border ${t.border} rounded-2xl`}>
                         <div className={`w-2 h-2 rounded-full ${t.active} animate-pulse`} />
-                        <span className={`text-xs font-black uppercase tracking-widest ${t.text}`}>{selectedYear} Year Warden</span>
+                        <span className={`text-xs sm:text-sm font-black uppercase tracking-widest ${t.text}`}>{selectedYear} Year</span>
                     </div>
                     {!assignedYear && (
                         <button
                             onClick={() => setSelectedYear(null)}
-                            className="flex items-center gap-2 px-4 py-2 border border-white/10 rounded-xl text-[10px] font-black text-white/30 uppercase tracking-widest hover:text-white hover:border-white/20 transition-all"
+                            className="flex items-center gap-2 px-3 sm:px-4 py-2 border border-white/10 rounded-xl text-xs font-black text-white/30 uppercase tracking-widest hover:text-white hover:border-white/20 transition-all"
                         >
-                            <FiLogOut size={13} /> Switch Year
+                            <FiLogOut size={13} /> <span className="hidden sm:inline">Switch Year</span>
                         </button>
                     )}
                     {onLogout && (
                         <button
                             onClick={onLogout}
-                            className="flex items-center gap-2 px-4 py-2 border border-rose-500/20 rounded-xl text-[10px] font-black text-rose-400 uppercase tracking-widest hover:bg-rose-500 hover:text-white hover:border-rose-500 transition-all"
+                            className="flex items-center gap-2 px-3 sm:px-4 py-2 border border-rose-500/20 rounded-xl text-xs font-black text-rose-400 uppercase tracking-widest hover:bg-rose-500 hover:text-white hover:border-rose-500 transition-all"
                         >
-                            <FiLogOut size={13} /> Logout
+                            <FiLogOut size={13} /> <span className="hidden sm:inline">Logout</span>
                         </button>
                     )}
                 </div>
 
                 {/* View Toggle */}
-                <div className={`flex bg-[#0f1f38] p-1.5 rounded-2xl border border-white/5 shadow-2xl`}>
+                <div className={`flex bg-[#0f1f38] p-1 sm:p-1.5 rounded-2xl border border-white/5 shadow-2xl w-full sm:w-auto`}>
                         <button
                             onClick={() => setView("pending_final")}
-                            className={`flex items-center gap-2 px-10 py-4 rounded-xl text-sm font-black tracking-widest uppercase transition-all duration-300 ${view === "pending_final" ? `${t.active} text-slate-900 shadow-lg` : "text-white/40 hover:text-white"}`}
+                            className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 sm:px-10 py-3 sm:py-4 rounded-xl text-xs sm:text-sm font-black tracking-widest uppercase transition-all duration-300 ${view === "pending_final" ? `${t.active} text-slate-900 shadow-lg` : "text-white/40 hover:text-white"}`}
                         >
-                            <FiClock size={18} /> Pending ({pendingFinal.length})
+                            <FiClock size={16} /> Pending ({pendingFinal.length})
                         </button>
                         <button
                             onClick={() => setView("finalized")}
-                            className={`flex items-center gap-2 px-10 py-4 rounded-xl text-sm font-black tracking-widest uppercase transition-all duration-300 ${view === "finalized" ? `${t.active} text-slate-900 shadow-lg` : "text-white/40 hover:text-white"}`}
+                            className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 sm:px-10 py-3 sm:py-4 rounded-xl text-xs sm:text-sm font-black tracking-widest uppercase transition-all duration-300 ${view === "finalized" ? `${t.active} text-slate-900 shadow-lg` : "text-white/40 hover:text-white"}`}
                         >
-                            <FiCheckCircle size={18} /> Finalized ({finalized.length})
+                            <FiCheckCircle size={16} /> Finalized ({finalized.length})
                         </button>
                 </div>
             </header>
 
             {/* ── Main content ── */}
-            <main className="max-w-7xl mx-auto p-10 lg:p-16">
+            <main className="max-w-7xl mx-auto p-4 sm:p-10 lg:p-16">
                 {/* ── Stats Row ── */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mb-8 sm:mb-12">
                     {/* Main stat */}
-                    <div className={`col-span-1 md:col-span-1 bg-[#0f1f38] border ${t.border} rounded-3xl p-8 flex flex-col justify-between relative overflow-hidden group`}>
+                    <div className={`col-span-1 md:col-span-1 bg-[#0f1f38] border ${t.border} rounded-3xl p-6 sm:p-8 flex flex-col justify-between relative overflow-hidden group`}>
                         <div className={`absolute -top-6 -right-6 w-28 h-28 ${t.active} opacity-5 rounded-full blur-xl group-hover:opacity-10 transition-opacity`} />
                         <div>
-                            <h3 className={`${t.text} text-sm font-black tracking-[0.2em] uppercase mb-1`}>{selectedYear} Year — Queue</h3>
+                            <h3 className={`${t.text} text-base sm:text-sm font-black tracking-[0.2em] uppercase mb-1`}>{selectedYear} Year — Queue</h3>
                             <p className="text-white/40 text-base font-medium">Pending your final review.</p>
                         </div>
                         <div className="flex items-end justify-between mt-8">
-                            <span className="text-8xl font-black text-white">{pendingFinal.length}</span>
-                            <span className={`px-4 py-1.5 ${t.ring} border ${t.border} rounded-full text-[12px] font-black ${t.text} uppercase`}>Active</span>
+                            <span className="text-7xl sm:text-8xl font-black text-white">{pendingFinal.length}</span>
+                            <span className={`px-4 py-1.5 ${t.ring} border ${t.border} rounded-full text-xs font-black ${t.text} uppercase`}>Active</span>
                         </div>
                     </div>
 
-                    <div className="bg-[#0f1f38] border border-white/5 rounded-3xl p-8">
-                        <FiTrendingUp className="text-emerald-400 mb-6" size={26} />
-                        <p className="text-[12px] text-white/30 uppercase font-black tracking-widest mb-1">Approved ({selectedYear} Yr)</p>
-                        <p className="text-5xl font-black text-white">{approvedCount}</p>
+                    <div className="bg-[#0f1f38] border border-white/5 rounded-3xl p-6 sm:p-8">
+                        <FiTrendingUp className="text-emerald-400 mb-4 sm:mb-6" size={26} />
+                        <p className="text-xs sm:text-[12px] text-white/30 uppercase font-black tracking-widest mb-1">Approved ({selectedYear} Yr)</p>
+                        <p className="text-4xl sm:text-5xl font-black text-white">{approvedCount}</p>
                     </div>
 
-                    <div className={`bg-gradient-to-br ${t.ring} border ${t.border} rounded-3xl p-8`}>
-                        <FiUsers className={`${t.text} mb-6`} size={26} />
-                        <p className="text-[12px] text-white/30 uppercase font-black tracking-widest mb-1">Total {selectedYear} Year Forms</p>
-                        <p className={`text-5xl font-black ${t.text}`}>{totalForYear}</p>
+                    <div className={`bg-gradient-to-br ${t.ring} border ${t.border} rounded-3xl p-6 sm:p-8`}>
+                        <FiUsers className={`${t.text} mb-4 sm:mb-6`} size={26} />
+                        <p className="text-xs sm:text-[12px] text-white/30 uppercase font-black tracking-widest mb-1">Total {selectedYear} Year Forms</p>
+                        <p className={`text-4xl sm:text-5xl font-black ${t.text}`}>{totalForYear}</p>
                     </div>
                 </div>
 
                 {/* ── Requests Table ── */}
                 <div>
-                    <div className="flex items-center justify-between px-1 mb-6">
-                        <h2 className="text-2xl font-black text-white tracking-tight flex items-center gap-3">
+                    <div className="flex items-center justify-between px-1 mb-4 sm:mb-6">
+                        <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight flex items-center gap-3">
                             <FiFileText className={t.text} />
                             {view === "pending_final"
                                 ? `${selectedYear} Year — Awaiting Final Signature`
@@ -250,8 +250,8 @@ const Warden = ({ assignedYear = null, onLogout }) => {
                     </div>
 
                     <div className={`bg-[#0f1f38] border ${t.border} rounded-3xl overflow-hidden shadow-[0_30px_60px_rgba(0,0,0,0.4)]`}>
-                        <div className="overflow-x-auto [&::-webkit-scrollbar]:hidden">
-                            <table className="w-full text-left border-collapse min-w-[1000px]">
+                        <div className="overflow-x-auto [&::-webkit-scrollbar]:h-1.5">
+                            <table className="w-full text-left border-collapse min-w-[900px]">
                                 <thead>
                                     <tr className="bg-white/[0.03] text-[11px] uppercase tracking-[0.3em] font-black border-b border-white/5">
                                         <th className="px-6 py-6 text-white/40">Student</th>

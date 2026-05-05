@@ -1,1 +1,76 @@
 @import "tailwindcss";
+
+/* ── Global Font Scaling ─────────────────────────────── */
+/* Base: 14px (mobile) → 16px (tablet) → 18px (desktop) */
+html {
+  font-size: 14px;
+}
+
+@media (min-width: 640px) {
+  html { font-size: 15px; }
+}
+
+@media (min-width: 1024px) {
+  html { font-size: 16px; }
+}
+
+@media (min-width: 1280px) {
+  html { font-size: 17px; }
+}
+
+@media (min-width: 1536px) {
+  html { font-size: 18px; }
+}
+
+/* ── Better base defaults ────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+/* ── Mobile: minimum touch target size ──────────────── */
+button, a, select, input {
+  min-height: 40px;
+}
+
+@media (min-width: 1024px) {
+  button, a, select, input {
+    min-height: unset;
+  }
+}
+
+/* ── Scrollbar styling ───────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(45, 212, 191, 0.4);
+}
+
+/* ── Table: better mobile handling ──────────────────── */
+.table-scroll-container {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ── Mobile card view utility ────────────────────────── */
+@media (max-width: 767px) {
+  .hide-mobile { display: none !important; }
+  .mobile-full { width: 100% !important; }
+}

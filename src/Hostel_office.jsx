@@ -133,22 +133,22 @@ const HostelOffice = ({ onLogout }) => {
     return (
         <div className="min-h-screen w-full bg-[#0a1628] text-white font-sans selection:bg-emerald-500/30">
             {/* ── Header ── */}
-            <header className="w-full flex items-center justify-between px-10 py-6 border-b border-white/5 bg-[#0a1628]/80 backdrop-blur-xl sticky top-0 z-50 gap-4 flex-wrap">
-                <div className="flex items-center gap-5">
-                    <img src={logo} alt="Logo" className="w-12 h-12 object-contain" />
+            <header className="w-full flex items-center justify-between px-4 sm:px-10 py-4 sm:py-6 border-b border-white/5 bg-[#0a1628]/80 backdrop-blur-xl sticky top-0 z-50 gap-3 flex-wrap">
+                <div className="flex items-center gap-3 sm:gap-5">
+                    <img src={logo} alt="Logo" className="w-9 h-9 sm:w-12 sm:h-12 object-contain" />
                     <div className="flex flex-col">
-                        <span className="text-xs font-black tracking-[.3em] text-emerald-400/80 uppercase">Administration</span>
-                        <span className="text-2xl font-black text-white tracking-widest uppercase">Hostel Office</span>
+                        <span className="text-[10px] sm:text-xs font-black tracking-[.3em] text-emerald-400/80 uppercase">Administration</span>
+                        <span className="text-lg sm:text-2xl font-black text-white tracking-widest uppercase">Hostel Office</span>
                     </div>
                 </div>
 
                 {/* Year Filter */}
-                <div className="flex items-center gap-1.5 bg-[#112240] p-1.5 rounded-2xl border border-white/5">
+                <div className="flex items-center gap-1 sm:gap-1.5 bg-[#112240] p-1 sm:p-1.5 rounded-2xl border border-white/5 overflow-x-auto flex-shrink-0">
                     {["all", ...YEARS].map(yr => (
                         <button
                             key={yr}
                             onClick={() => setSelectedYear(yr)}
-                            className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                            className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap ${
                                 selectedYear === yr
                                     ? yr === "all" ? "bg-white text-slate-900 shadow-xl"
                                         : `${YEAR_COLORS[yr]?.bg ?? ""} text-slate-900 shadow-xl`
@@ -161,29 +161,29 @@ const HostelOffice = ({ onLogout }) => {
                 </div>
 
                 {/* View Toggle */}
-                <div className="flex bg-[#0f1f38] p-1.5 rounded-2xl border border-white/5">
+                <div className="flex bg-[#0f1f38] p-1 sm:p-1.5 rounded-2xl border border-white/5">
                     <button
                         onClick={() => setView("pending_office")}
-                        className={`flex items-center gap-2 px-8 py-3 rounded-xl text-xs font-black tracking-widest uppercase transition-all duration-300 ${view === "pending_office" ? "bg-emerald-500 text-slate-900 shadow-lg shadow-emerald-500/20" : "text-white/40 hover:text-white"}`}
+                        className={`flex items-center gap-1.5 sm:gap-2 px-4 sm:px-8 py-2.5 sm:py-3 rounded-xl text-xs font-black tracking-widest uppercase transition-all duration-300 ${view === "pending_office" ? "bg-emerald-500 text-slate-900 shadow-lg shadow-emerald-500/20" : "text-white/40 hover:text-white"}`}
                     >
-                        <FiZap size={15} /> To Process ({pendingOffice.length})
+                        <FiZap size={14} /> <span className="hidden sm:inline">To Process ({pendingOffice.length})</span><span className="sm:hidden">({pendingOffice.length})</span>
                     </button>
                     <button
                         onClick={() => setView("completed")}
-                        className={`flex items-center gap-2 px-8 py-3 rounded-xl text-xs font-black tracking-widest uppercase transition-all duration-300 ${view === "completed" ? "bg-emerald-500 text-slate-900 shadow-lg shadow-emerald-500/20" : "text-white/40 hover:text-white"}`}
+                        className={`flex items-center gap-1.5 sm:gap-2 px-4 sm:px-8 py-2.5 sm:py-3 rounded-xl text-xs font-black tracking-widest uppercase transition-all duration-300 ${view === "completed" ? "bg-emerald-500 text-slate-900 shadow-lg shadow-emerald-500/20" : "text-white/40 hover:text-white"}`}
                     >
-                        <FiArchive size={15} /> Archive ({completed.length})
+                        <FiArchive size={14} /> Archive ({completed.length})
                     </button>
                 </div>
                 {onLogout && (
-                    <button onClick={onLogout} className="flex items-center gap-2 px-4 py-2 border border-rose-500/20 rounded-xl text-[10px] font-black text-rose-400 uppercase tracking-widest hover:bg-rose-500 hover:text-white hover:border-rose-500 transition-all">
-                        <FiShield size={13} /> Logout
+                    <button onClick={onLogout} className="flex items-center gap-2 px-3 sm:px-4 py-2 border border-rose-500/20 rounded-xl text-xs font-black text-rose-400 uppercase tracking-widest hover:bg-rose-500 hover:text-white hover:border-rose-500 transition-all">
+                        <FiShield size={13} /> <span className="hidden sm:inline">Logout</span>
                     </button>
                 )}
             </header>
 
             {/* ── Main content ── */}
-            <main className="max-w-7xl mx-auto p-10 lg:p-16">
+            <main className="max-w-7xl mx-auto p-4 sm:p-10 lg:p-16">
 
                 {/* ── Year-wise Stat Cards ── */}
                 <div className="mb-12">
