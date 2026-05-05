@@ -28,7 +28,7 @@ function AnimatedTitle() {
   return (
     <div className="mb-10 flex flex-col items-center">
       <motion.h1
-        className="font-black text-2xl sm:text-3xl text-teal-400 tracking-[0.2em] drop-shadow-lg"
+        className="font-black text-3xl sm:text-4xl text-teal-400 tracking-[0.2em] drop-shadow-lg"
         initial="hidden"
         animate="visible"
         variants={{
@@ -58,7 +58,7 @@ function AnimatedTitle() {
 
 function Login() {
   const inputContainerClass = "flex items-center border-b-2 border-teal-700/50 py-3 focus-within:border-teal-400 transition-colors duration-300"
-  const inputClass = "w-full bg-transparent focus:outline-none text-sm text-teal-50 placeholder:text-teal-200/40 ml-3"
+  const inputClass = "w-full bg-transparent focus:outline-none text-base text-teal-50 placeholder:text-teal-200/40 ml-3"
   const iconClass = "text-teal-400 text-lg"
 
   return (
@@ -66,7 +66,7 @@ function Login() {
       
       <div className="flex  gap-3 mb-6 ">
         <img src={logo} alt="logo" className="w-10 h-10 sm:w-16 sm:h-16 object-contain" />
-        <h1 className="text-teal-50 text-xs sm:text-lg lg:text-4xl text-center  ">
+        <h1 className="text-teal-50 text-sm sm:text-xl lg:text-5xl text-center  ">
           GOVERNMENT COLLEGE OF ENGINEERING, SRIRANGAM
         </h1>
       </div>
@@ -87,7 +87,7 @@ function Login() {
           </div>
           
           <div className="w-full flex justify-center mt-6">
-            <button className="w-full sm:w-44 rounded-xl py-3 text-sm font-bold text-slate-900 bg-teal-500 hover:bg-teal-400 shadow-lg transition-all duration-300 active:scale-95 tracking-wider">
+            <button className="w-full sm:w-44 rounded-xl py-3 text-base font-bold text-slate-900 bg-teal-500 hover:bg-teal-400 shadow-lg transition-all duration-300 active:scale-95 tracking-wider">
               LOGIN
             </button>
           </div>

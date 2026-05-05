@@ -22,3 +22,22 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Spring Boot & Backend
+mvnw
+mvnw.cmd
+.mvn/
+pom.xml
+HELP.md
+src/main/
+src/test/
+target/
+build/
+bin/
+*.class
+*.jar
+*.war
+*.ear
+test.html
+db.json
+

@@ -1,6 +1,7 @@
 import React, { useState } from "react"
 import { motion } from "framer-motion"
 import { FiUser, FiCreditCard, FiHash, FiCalendar, FiBookOpen, FiMail, FiPhone, FiArrowRight } from "react-icons/fi"
+import apiClient from "./api/apiClient"
 
 const TITLE = "REGISTER"
 
@@ -16,11 +17,11 @@ const getInitial = () => {
 function AnimatedTitle() {
   return (
     <div className="mb-4">
-      <p className="text-[10px] font-semibold tracking-[0.3em] text-teal-400/70 uppercase mb-1.5">
+      <p className="text-sm font-bold tracking-[0.3em] text-teal-400/80 uppercase mb-2">
         Student Portal
       </p>
       <motion.h2
-        className="font-black text-2xl sm:text-3xl text-white tracking-tight flex gap-[1px]"
+        className="font-black text-3xl sm:text-4xl text-white tracking-tight flex gap-[1px]"
         initial="hidden"
         animate="visible"
         variants={{ visible: { transition: { staggerChildren: 0.04, delayChildren: 0.03 } } }}
@@ -42,7 +43,7 @@ function AnimatedTitle() {
           </motion.span>
         ))}
       </motion.h2>
-      <p className="text-xs text-white/30 mt-0.5 font-medium">Create your mess account</p>
+      <p className="text-base text-white/40 mt-1.5 font-medium">Create your mess account</p>
       <div className="mt-2 h-px bg-gradient-to-r from-teal-500/40 to-transparent" />
     </div>
   )
@@ -51,23 +52,23 @@ function AnimatedTitle() {
 function Field({ icon, className = "", children }) {
   return (
     <div className={`flex items-center gap-2 rounded-xl border border-white/8 bg-white/4 px-3 py-2.5 focus-within:border-teal-500/60 focus-within:bg-teal-950/20 transition-colors duration-200 ${className}`}>
-      <span className="text-teal-400/60 shrink-0 text-sm">{icon}</span>
+      <span className="text-teal-400/60 shrink-0 text-base">{icon}</span>
       {children}
     </div>
   )
 }
 
-const inp = "flex-1 min-w-0 bg-transparent focus:outline-none text-[13px] text-white placeholder:text-white/25 font-medium"
+const inp = "flex-1 min-w-0 bg-transparent focus:outline-none text-lg text-white placeholder:text-white/25 font-medium"
 
 function Register({ goToLogin }) {
   const [formData, setFormData] = useState({
     name: "",
-    registerNo: "",
+    regNo: "",
     rollNo: "",
     dob: "",
-    department: "",
-    emailId: "",
-    phoneNo: ""
+    dept: "",
+    email: "",
+    phone: ""
   });
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -91,22 +92,28 @@ function Register({ goToLogin }) {
     e.preventDefault();
     setLoading(true);
 
-    try {
-      const response = await fetch("http://localhost:8081/api/student/reg", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData)
-      });
+    const submissionData = {
+      name: formData.name,
+      registerNo: formData.regNo,
+      rollNo: formData.rollNo,
+      dob: formData.dob,
+      department: formData.dept,
+      emailId: formData.email,
+      phoneNo: formData.phone
+    };
 
-      if (response.ok) {
+    try {
+      const response = await apiClient.post("/student/reg", submissionData);
+
+      if (response.status === 200 || response.status === 201) {
         setSuccess(true);
         setTimeout(() => goToLogin(), 1500);
       } else {
-        const err = await response.text();
-        throw new Error(err || "Server not responding");
+        alert("Registration failed. Please try again.");
       }
     } catch (error) {
-      alert("Registration failed: " + error.message);
+      console.error("Registration error:", error);
+      alert(error.response?.data?.message || "Registration failed. Ensure all fields are unique.");
     } finally {
       setLoading(false);
     }
@@ -138,8 +145,8 @@ function Register({ goToLogin }) {
 
         <Field icon={<FiCreditCard />}>
           <input 
-            type="text" inputMode="numeric" placeholder="Register number" name="registerNo"
-            className={inp} onKeyDown={handleNumKey} value={formData.registerNo} onChange={handleChange} required 
+            type="text" inputMode="numeric" placeholder="Register number" name="regNo"
+            className={inp} onKeyDown={handleNumKey} value={formData.regNo} onChange={handleChange} required 
           />
         </Field>
 
@@ -161,7 +168,7 @@ function Register({ goToLogin }) {
 
         <Field icon={<FiBookOpen />}>
           <select 
-            name="department" value={formData.department} onChange={handleChange} required
+            name="dept" value={formData.dept} onChange={handleChange} required
             className={`${inp} appearance-none cursor-pointer`}
           >
             <option value="" className="bg-[#0f1f38] text-white/40">Select Department</option>
@@ -173,32 +180,28 @@ function Register({ goToLogin }) {
 
         <Field icon={<FiMail />}>
           <input 
-            type="email" placeholder="Email address" name="emailId" 
-            className={inp} value={formData.emailId} onChange={handleChange} required 
+            type="email" placeholder="Email address" name="email" 
+            className={inp} value={formData.email} onChange={handleChange} required 
           />
         </Field>
 
         <Field icon={<FiPhone />}>
           <input 
-            type="text" inputMode="numeric" placeholder="Phone number" name="phoneNo"
-            className={inp} onKeyDown={handleNumKey} value={formData.phoneNo} onChange={handleChange} required 
+            type="text" inputMode="numeric" placeholder="Phone number" name="phone"
+            className={inp} onKeyDown={handleNumKey} value={formData.phone} onChange={handleChange} required 
           />
         </Field>
       </div>
 
       <motion.button
-        whileHover={{ scale: 1.015 }}
-        whileTap={{ scale: 0.985 }}
-        type="submit"
-        disabled={loading}
-        className={`mt-3 flex items-center justify-center gap-2 w-full rounded-xl py-2.5 text-sm font-bold text-slate-900 bg-gradient-to-r from-teal-400 to-emerald-400 hover:brightness-110 shadow-lg shadow-teal-900/30 transition-all duration-200 tracking-wider ${loading ? "opacity-50" : ""}`}
+        className={`mt-4 flex items-center justify-center gap-3 w-full rounded-xl py-4 text-lg font-black text-slate-900 bg-gradient-to-r from-teal-400 to-emerald-400 hover:brightness-110 shadow-lg shadow-teal-900/30 transition-all duration-200 tracking-widest ${loading ? "opacity-50" : ""}`}
       >
-        {loading ? "CREATING..." : "CREATE ACCOUNT"} <FiArrowRight size={14} />
+        {loading ? "CREATING..." : "CREATE ACCOUNT"} <FiArrowRight size={16} />
       </motion.button>
 
-      <p className="text-center text-xs mt-2 text-white/30">
+      <p className="text-center text-base mt-2 text-white/30">
         Already have an account?{" "}
-        <button type="button" onClick={goToLogin} className="text-teal-400 font-semibold hover:text-teal-300 underline underline-offset-2 transition-colors">
+        <button type="button" onClick={goToLogin} className="text-teal-400 font-black hover:text-teal-300 underline underline-offset-4 transition-colors">
           Sign in
         </button>
       </p>

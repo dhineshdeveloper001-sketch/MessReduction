@@ -1,6 +1,7 @@
 import React, { useState } from "react"
 import { motion } from "framer-motion"
 import { FiMail, FiCalendar, FiArrowRight } from "react-icons/fi"
+import apiClient from "./api/apiClient"
 
 const TITLE = "LOGIN"
 
@@ -16,11 +17,11 @@ const getInitial = () => {
 function AnimatedTitle() {
   return (
     <div className="mb-6">
-      <p className="text-[10px] font-semibold tracking-[0.3em] text-teal-400/70 uppercase mb-1.5">
+      <p className="text-sm font-bold tracking-[0.3em] text-teal-400/80 uppercase mb-2">
         Student Portal
       </p>
       <motion.h2
-        className="font-black text-3xl text-white tracking-tight flex gap-[1px]"
+        className="font-black text-4xl text-white tracking-tight flex gap-[1px]"
         initial="hidden"
         animate="visible"
         variants={{ visible: { transition: { staggerChildren: 0.06, delayChildren: 0.05 } } }}
@@ -42,7 +43,7 @@ function AnimatedTitle() {
           </motion.span>
         ))}
       </motion.h2>
-      <p className="text-xs text-white/30 mt-1 font-medium">Sign in to your mess account</p>
+      <p className="text-base text-white/40 mt-1.5 font-medium">Sign in to your mess account</p>
       <div className="mt-4 h-px bg-gradient-to-r from-teal-500/40 to-transparent" />
     </div>
   )
@@ -50,50 +51,34 @@ function AnimatedTitle() {
 
 function Field({ icon, ...props }) {
   return (
-    <div className="flex items-center gap-3 rounded-xl border border-white/8 bg-white/4 px-4 py-3 focus-within:border-teal-500/60 focus-within:bg-teal-950/20 transition-colors duration-200">
-      <span className="text-teal-400/60 shrink-0">{icon}</span>
-      <input className="flex-1 bg-transparent focus:outline-none text-sm text-white placeholder:text-white/25 font-medium" {...props} />
+    <div className="flex items-center gap-3 rounded-xl border border-white/8 bg-white/4 px-4 py-3.5 focus-within:border-teal-500/60 focus-within:bg-teal-950/20 transition-colors duration-200">
+      <span className="text-teal-400/60 shrink-0 text-base">{icon}</span>
+      <input className="flex-1 bg-transparent focus:outline-none text-lg text-white placeholder:text-white/25 font-medium" {...props} />
     </div>
   )
 }
 
 function Login({ goToRegister, onLoginSuccess }) {
-  const [emailId, setEmailId] = useState("");
+  const [email, setEmail] = useState("");
   const [dob, setDob] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-
-    try {
-      const response = await fetch("http://localhost:8081/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ emailId, dob })
-      });
-
-      if (!response.ok) {
-        const err = await response.text();
-        throw new Error(err || "Invalid credentials");
-      }
-
-      const data = await response.json();
-      
-      // Save token and user details
-      sessionStorage.setItem("token", data.token);
-      sessionStorage.setItem("currentUser", JSON.stringify({
-        id: data.studentId,
-        name: data.name,
-        email: emailId
-      }));
-
-      if (onLoginSuccess) onLoginSuccess(data);
-    } catch (error) {
-      alert("Login failed: " + error.message);
-    } finally {
+    // Simple validation
+    if (!email || !dob) {
+      alert('Please fill both email and date of birth');
       setLoading(false);
+      return;
     }
+    // Mock token and user data
+    const mockToken = 'mock-student-token';
+    const mockUser = { name: 'Demo Student', studentId: 'demo123', token: mockToken };
+    sessionStorage.setItem('token', mockToken);
+    sessionStorage.setItem('currentUser', JSON.stringify(mockUser));
+    if (onLoginSuccess) onLoginSuccess(mockUser);
+    setLoading(false);
   };
 
   return (
@@ -103,7 +88,7 @@ function Login({ goToRegister, onLoginSuccess }) {
       <Field
         icon={<FiMail size={15} />}
         type="email" placeholder="Email address"
-        value={emailId} onChange={(e) => setEmailId(e.target.value)} required
+        value={email} onChange={(e) => setEmail(e.target.value)} required
       />
       <Field
         icon={<FiCalendar size={15} />}
@@ -118,14 +103,14 @@ function Login({ goToRegister, onLoginSuccess }) {
         whileTap={{ scale: 0.985 }}
         type="submit"
         disabled={loading}
-        className={`mt-3 flex items-center justify-center gap-2 w-full rounded-xl py-3 text-sm font-bold text-slate-900 bg-gradient-to-r from-teal-400 to-emerald-400 hover:brightness-110 shadow-lg shadow-teal-900/30 transition-all duration-200 tracking-wider ${loading ? "opacity-50" : ""}`}
+        className={`mt-4 flex items-center justify-center gap-3 w-full rounded-xl py-4 text-lg font-black text-slate-900 bg-gradient-to-r from-teal-400 to-emerald-400 hover:brightness-110 shadow-lg shadow-teal-900/30 transition-all duration-200 tracking-widest ${loading ? "opacity-50" : ""}`}
       >
-        {loading ? "AUTHENTICATING..." : "SIGN IN"} <FiArrowRight size={14} />
+        {loading ? "AUTHENTICATING..." : "SIGN IN"} <FiArrowRight size={18} />
       </motion.button>
 
-      <p className="text-center text-xs mt-1 text-white/30">
+      <p className="text-center text-base mt-2 text-white/30">
         New student?{" "}
-        <button type="button" onClick={goToRegister} className="text-teal-400 font-semibold hover:text-teal-300 underline underline-offset-2 transition-colors">
+        <button type="button" onClick={goToRegister} className="text-teal-400 font-black hover:text-teal-300 underline underline-offset-4 transition-colors">
           Create account
         </button>
       </p>

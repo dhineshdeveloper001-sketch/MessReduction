@@ -14,13 +14,13 @@ function AuthWrapper({ onLoginSuccess }) {
       <div className="fixed inset-0 bg-[#0a1628] -z-10" />
 
       {/* ── Header ── */}
-      <header className="w-full flex items-center justify-center gap-3 px-4 sm:px-5 py-2.5 sm:py-4 border-b border-white/5 bg-[#0a1628]/80 backdrop-blur-sm shrink-0">
-        <img src={image} alt="GCES Logo" className="w-8 h-8 sm:w-10 sm:h-10 object-contain" />
+      <header className="w-full flex items-center justify-center gap-4 px-4 sm:px-6 py-4 sm:py-6 border-b border-white/5 bg-[#0a1628]/80 backdrop-blur-md shrink-0">
+        <img src={image} alt="GCES Logo" className="w-10 h-10 sm:w-12 sm:h-12 object-contain" />
         <div className="flex flex-col leading-tight">
-          <span className="text-[10px] sm:text-xs font-semibold tracking-[0.2em] text-teal-400/80 uppercase">
+          <span className="text-xs sm:text-sm font-semibold tracking-[0.25em] text-teal-400/80 uppercase">
             Government College of Engineering
           </span>
-          <span className="text-base sm:text-lg font-black text-white tracking-widest">
+          <span className="text-xl sm:text-2xl font-black text-white tracking-widest">
             SRIRANGAM
           </span>
         </div>
@@ -30,7 +30,7 @@ function AuthWrapper({ onLoginSuccess }) {
       <div className="h-[2px] bg-gradient-to-r from-transparent via-teal-500/50 to-transparent shrink-0" />
 
       {/* ── Main content ── */}
-      <main className="flex-1 overflow-y-auto flex flex-col items-center justify-start sm:justify-center px-4 py-4 sm:py-8">
+      <main className="flex-1 flex flex-col items-center justify-start sm:justify-center px-4 py-4 sm:py-8">
         <div style={{ perspective: "1200px" }} className="w-full max-w-[400px] md:max-w-[480px] lg:max-w-[520px] my-auto sm:my-0">
           <AnimatePresence mode="wait">
             {isLogin ? (
@@ -64,7 +64,7 @@ function AuthWrapper({ onLoginSuccess }) {
                 className="w-full"
               >
                 <div className="w-full rounded-2xl border border-white/8 bg-[#0f1f38] shadow-xl overflow-hidden">
-                  <div className="h-[2px] bg-gradient-to-r from-transparent via-teal-400/70 to-transparent" />
+                  <div className="h-[1px] bg-gradient-to-r from-transparent via-teal-400/70 to-transparent" />
                   <div className="p-5 sm:p-7">
                     <Register goToLogin={() => setIsLogin(true)} />
                   </div>
@@ -76,8 +76,8 @@ function AuthWrapper({ onLoginSuccess }) {
       </main>
 
       {/* ── Footer ── */}
-      <footer className="shrink-0 pb-4 text-center">
-        <p className="text-[10px] text-white/15 tracking-widest uppercase">
+      <footer className="shrink-0 pb-6 text-center">
+        <p className="text-xs text-white/20 tracking-widest uppercase font-black">
           © 2025 GCES · Mess Reduction Portal
         </p>
       </footer>

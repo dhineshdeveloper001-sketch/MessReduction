@@ -1,12 +1,16 @@
 import axios from 'axios';
 
 const apiClient = axios.create({
-  baseURL: 'http://localhost:8081/api',
+  baseURL: 'http://localhost:5000',
 });
 
 // Request interceptor to add the JWT token to headers
 apiClient.interceptors.request.use((config) => {
-  const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+  // Check for both student and staff tokens
+  const token = sessionStorage.getItem('token') || 
+                sessionStorage.getItem('staffToken') || 
+                localStorage.getItem('token');
+                
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -20,10 +24,11 @@ apiClient.interceptors.response.use((response) => {
   return response;
 }, (error) => {
   if (error.response && error.response.status === 401) {
-    // Optionally redirect to login or clear storage
-    console.warn("Unauthorized! Clearing token.");
+    console.warn("Unauthorized! Clearing tokens.");
     sessionStorage.removeItem('token');
+    sessionStorage.removeItem('staffToken');
     sessionStorage.removeItem('currentUser');
+    sessionStorage.removeItem('staffUser');
     // window.location.href = '/'; 
   }
   return Promise.reject(error);
