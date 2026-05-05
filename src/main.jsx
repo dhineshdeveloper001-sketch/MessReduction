@@ -9,12 +9,11 @@ import Office from './Hostel_office.jsx'
 // import Login from './Login.jsx'
 import AuthWrapper from './AuthWrapper.jsx'
 import MessReductionPage from './MessReductionPage.jsx'
+import Deputy_warden_side from './Deputy_warden_side.jsx'
 
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <>
-      <MessReductionPage />
-    </>
+    <App />
   </StrictMode>
 )

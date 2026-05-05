@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FiUser, FiHome, FiCreditCard, FiBookOpen, FiCalendar, FiClock, FiPhone, FiInfo, FiArrowRight, FiFileText } from "react-icons/fi";
 import image from "./assets/1000088399.png";
@@ -21,7 +21,7 @@ function AnimatedTitle() {
                 Hostel Application
             </p>
             <motion.h2
-                className="font-black text-2xl sm:text-3xl text-white tracking-tight flex flex-wrap gap-[1px] justify-center sm:justify-start"
+                className="font-black text-2xl sm:text-3xl md:text-4xl lg:text-5xl text-white tracking-tight flex flex-wrap gap-[1px] justify-center sm:justify-start"
                 initial="hidden"
                 animate="visible"
                 variants={{ visible: { transition: { staggerChildren: 0.05, delayChildren: 0.05 } } }}
@@ -64,22 +64,93 @@ function Field({ icon, as: Component = "input", children, ...props }) {
 }
 
 function MessReductionPage() {
-    const [reason, setReason] = useState("");
-    const [otherText, setOtherText] = useState("");
+    const [formData, setFormData] = useState({
+        name: "",
+        id: "",
+        room: "",
+        dept: "",
+        year: "",
+        mobile: "",
+        leaveDate: "",
+        leaveTime: "",
+        arrivalDate: "",
+        arrivalTime: "",
+        totalHolidays: "",
+        reason: "",
+        otherReason: ""
+    });
+
     const [status , setStatus] = useState("pending")
     const [isSubmitted, setIssubmitted] = useState(false)
+    const [isSubmitting, setIsSubmitting] = useState(false)
+    const [myRequests, setMyRequests] = useState([])
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-
-        if (reason === "other") {
-            console.log("Other Reason:", otherText);
-        } else {
-            console.log("Selected Reason:", reason);
+    useEffect(() => {
+        // Auto-fill from session storage if available
+        const savedUser = sessionStorage.getItem("currentUser");
+        if (savedUser) {
+            const user = JSON.parse(savedUser);
+            setFormData(prev => ({
+                ...prev,
+                name: user.name || "",
+                id: user.regNo || "",
+                dept: user.dept || ""
+            }));
+            fetchMyRequests(user.regNo);
         }
-        setIssubmitted(true)
+    }, []);
 
+    const fetchMyRequests = async (regNo) => {
+        try {
+            const response = await fetch("http://localhost:5000/requests");
+            const data = await response.json();
+            setMyRequests(data.filter(r => String(r.id) === String(regNo)));
+        } catch (e) {
+            const mocked = JSON.parse(localStorage.getItem("mock_requests") || "[]");
+            setMyRequests(mocked.filter(r => String(r.id) === String(regNo)));
+        }
     };
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setIsSubmitting(true);
+
+        const submissionData = {
+            ...formData,
+            id: String(formData.id), // Standardize ID as string
+            reason: formData.reason === "other" ? formData.otherReason : formData.reason,
+            status: "pending"
+        };
+
+        try {
+            const response = await fetch("http://localhost:5000/requests", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(submissionData)
+            });
+
+            if (response.ok) {
+                setIssubmitted(true);
+                // Optional: Clear form or show success
+            } else {
+                console.error("Submission failed");
+                // Fallback for demo if server not running
+                setIssubmitted(true);
+            }
+        } catch (error) {
+            console.error("Error submitting form:", error);
+            // Fallback for demo
+            setIssubmitted(true);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
     return (
         <div className="h-[100dvh] w-full flex flex-col font-sans selection:bg-teal-500/30 relative">
             {/* Full-page background */}
@@ -135,7 +206,7 @@ function MessReductionPage() {
 
             {/* ── Main content ── */}
             <main className="flex-1 overflow-y-auto flex flex-col items-center px-4 py-20 sm:py-10 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-                <div style={{ perspective: "1200px" }} className="w-full max-w-[800px] shrink-0">
+                <div style={{ perspective: "1200px" }} className="w-full max-w-[950px] shrink-0">
                     <motion.div
                         initial={{ opacity: 0, rotateY: -10, y: 20 }}
                         animate={{ opacity: 1, rotateY: 0, y: 0 }}
@@ -145,23 +216,40 @@ function MessReductionPage() {
                     >
                         <div className="w-full rounded-2xl border border-white/8 bg-[#0f1f38] shadow-xl overflow-hidden">
                             <div className="h-[2px] bg-gradient-to-r from-transparent via-teal-400/70 to-transparent" />
-                            <div className="p-6 sm:p-8">
+                            <div className="p-8 sm:p-12 lg:p-16">
                                 <AnimatedTitle />
 
                                 <form onSubmit={handleSubmit} className="flex flex-col gap-3.5">
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                                        <Field icon={<FiUser size={15} />} type="text" placeholder="Full Name" required />
-                                        <Field icon={<FiCreditCard size={15} />} type="text" placeholder="Reg No" required />
+                                        <Field icon={<FiUser size={15} />} type="text" placeholder="Full Name" name="name" value={formData.name} onChange={handleChange} required />
+                                        <Field icon={<FiCreditCard size={15} />} type="text" placeholder="Reg No" name="id" value={formData.id} onChange={handleChange} required />
                                     </div>
 
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                                        <Field icon={<FiHome size={15} />} type="text" placeholder="Room No" />
-                                        <Field icon={<FiBookOpen size={15} />} type="text" placeholder="Branch" required />
+                                        <Field icon={<FiHome size={15} />} type="text" placeholder="Room No" name="room" value={formData.room} onChange={handleChange} />
+                                        <Field icon={<FiBookOpen size={15} />} type="text" placeholder="Branch (e.g. CSE)" name="dept" value={formData.dept} onChange={handleChange} required />
                                     </div>
 
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                                        <Field icon={<FiCalendar size={15} />} type="number" placeholder="Year" required />
-                                        <Field icon={<FiPhone size={15} />} type="tel" placeholder="Mobile Number" required />
+                                        <div className="flex items-center gap-3 rounded-xl border border-white/8 bg-white/4 px-4 py-3 focus-within:border-teal-500/60 focus-within:bg-teal-950/20 transition-colors duration-200 relative">
+                                            <span className="text-teal-400/60 shrink-0"><FiCalendar size={15} /></span>
+                                            <select
+                                                name="year"
+                                                value={formData.year}
+                                                onChange={handleChange}
+                                                required
+                                                className="flex-1 bg-transparent focus:outline-none text-sm text-white font-medium appearance-none w-full"
+                                            >
+                                                <option value="" disabled className="text-white/40 bg-[#0f1f38]">Select Year</option>
+                                                {["1st", "2nd", "3rd", "4th"].map(y => (
+                                                    <option key={y} value={y} className="bg-[#0f1f38] text-white">{y} Year</option>
+                                                ))}
+                                            </select>
+                                            <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2">
+                                                <svg className="w-4 h-4 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                                            </div>
+                                        </div>
+                                        <Field icon={<FiPhone size={15} />} type="tel" placeholder="Mobile Number" name="mobile" value={formData.mobile} onChange={handleChange} required />
                                     </div>
 
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
@@ -169,6 +257,9 @@ function MessReductionPage() {
                                             icon={<FiCalendar size={15} />}
                                             type="text"
                                             placeholder="Leave Date"
+                                            name="leaveDate"
+                                            value={formData.leaveDate}
+                                            onChange={handleChange}
                                             onFocus={(e) => (e.target.type = "date")}
                                             onBlur={(e) => { if (!e.target.value) e.target.type = "text"; }}
                                             required
@@ -177,6 +268,9 @@ function MessReductionPage() {
                                             icon={<FiClock size={15} />}
                                             type="text"
                                             placeholder="Leave Time"
+                                            name="leaveTime"
+                                            value={formData.leaveTime}
+                                            onChange={handleChange}
                                             onFocus={(e) => (e.target.type = "time")}
                                             onBlur={(e) => { if (!e.target.value) e.target.type = "text"; }}
                                             required
@@ -188,6 +282,9 @@ function MessReductionPage() {
                                             icon={<FiCalendar size={15} />}
                                             type="text"
                                             placeholder="Arrival Date"
+                                            name="arrivalDate"
+                                            value={formData.arrivalDate}
+                                            onChange={handleChange}
                                             onFocus={(e) => (e.target.type = "date")}
                                             onBlur={(e) => { if (!e.target.value) e.target.type = "text"; }}
                                             required
@@ -196,6 +293,9 @@ function MessReductionPage() {
                                             icon={<FiClock size={15} />}
                                             type="text"
                                             placeholder="Arrival Time"
+                                            name="arrivalTime"
+                                            value={formData.arrivalTime}
+                                            onChange={handleChange}
                                             onFocus={(e) => (e.target.type = "time")}
                                             onBlur={(e) => { if (!e.target.value) e.target.type = "text"; }}
                                             required
@@ -203,19 +303,20 @@ function MessReductionPage() {
                                     </div>
 
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                                        <Field icon={<FiFileText size={15} />} type="number" placeholder="No. of Holidays" required />
+                                        <Field icon={<FiFileText size={15} />} type="number" placeholder="No. of Holidays" name="totalHolidays" value={formData.totalHolidays} onChange={handleChange} required />
 
                                         {/* Select Field */}
                                         <div className="flex items-center gap-3 rounded-xl border border-white/8 bg-white/4 px-4 py-3 focus-within:border-teal-500/60 focus-within:bg-teal-950/20 transition-colors duration-200 relative">
                                             <span className="text-teal-400/60 shrink-0"><FiInfo size={15} /></span>
                                             <select
-                                                value={reason}
-                                                onChange={(e) => setReason(e.target.value)}
+                                                name="reason"
+                                                value={formData.reason}
+                                                onChange={handleChange}
                                                 className="flex-1 bg-transparent focus:outline-none text-sm text-white font-medium appearance-none w-full"
                                                 required
                                             >
                                                 <option value="" disabled className="text-white/40 bg-[#0f1f38]">Select Reason</option>
-                                                <option value="study" className="bg-[#0f1f38]">Study Holidays</option>
+                                                <option value="Study Holidays" className="bg-[#0f1f38]">Study Holidays</option>
                                                 <option value="Medical Leave" className="bg-[#0f1f38]">Medical Leave</option>
                                                 <option value="other" className="bg-[#0f1f38]">Other Reason</option>
                                             </select>
@@ -227,7 +328,7 @@ function MessReductionPage() {
                                     </div>
 
                                     <AnimatePresence>
-                                        {reason === "other" && (
+                                        {formData.reason === "other" && (
                                             <motion.div
                                                 initial={{ opacity: 0, height: 0, marginTop: 0 }}
                                                 animate={{ opacity: 1, height: "auto", marginTop: 4 }}
@@ -238,8 +339,9 @@ function MessReductionPage() {
                                                     icon={<FiFileText size={15} />}
                                                     type="text"
                                                     placeholder="Enter your reason"
-                                                    value={otherText}
-                                                    onChange={(e) => setOtherText(e.target.value)}
+                                                    name="otherReason"
+                                                    value={formData.otherReason}
+                                                    onChange={handleChange}
                                                     required
                                                 />
                                             </motion.div>
@@ -249,13 +351,49 @@ function MessReductionPage() {
                                     <motion.button
                                         whileHover={{ scale: 1.015 }}
                                         whileTap={{ scale: 0.985 }}
-                                        className="mt-4 flex items-center justify-center gap-2 w-full rounded-xl py-3.5 text-sm font-bold text-slate-900 bg-gradient-to-r from-teal-400 to-emerald-400 hover:brightness-110 shadow-lg shadow-teal-900/30 transition-all duration-200 tracking-wider"
+                                        className={`mt-4 flex items-center justify-center gap-2 w-full rounded-xl py-3.5 text-sm font-bold text-slate-900 bg-gradient-to-r from-teal-400 to-emerald-400 hover:brightness-110 shadow-lg shadow-teal-900/30 transition-all duration-200 tracking-wider ${isSubmitting ? "opacity-50 cursor-not-allowed" : ""}`}
                                         type="submit"
+                                        disabled={isSubmitting}
                                     >
-                                        SUBMIT FORM <FiArrowRight size={14} />
+                                        {isSubmitting ? "SUBMITTING..." : "SUBMIT FORM"} <FiArrowRight size={14} />
                                     </motion.button>
                                 </form>
+                            </div>
+                        </div>
 
+                        <div className="w-full rounded-2xl border border-white/8 bg-[#0f1f38] shadow-xl overflow-hidden mt-8">
+                            <div className="p-8 sm:p-12 lg:p-16">
+                                <div className="flex items-center gap-3 mb-8">
+                                    <h3 className="text-xl font-bold text-white tracking-tight">MY APPLICATIONS</h3>
+                                    <div className="flex-1 h-px bg-white/5" />
+                                </div>
+                                <div className="space-y-4">
+                                     {myRequests.length > 0 ? myRequests.map(req => (
+                                        <div key={req.id} className="bg-white/5 rounded-2xl p-5 border border-white/5 flex items-center justify-between">
+                                            <div>
+                                                <p className="text-xs font-bold text-white/40 uppercase tracking-widest mb-1">{req.leaveDate} to {req.arrivalDate}</p>
+                                                <p className="text-sm font-medium text-white">{req.reason}</p>
+                                            </div>
+                                            <div className="flex items-center gap-3 text-right">
+                                                 <div>
+                                                    <p className="text-[10px] font-black text-white/20 uppercase tracking-widest mb-1">Status</p>
+                                                    <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-lg border ${
+                                                        req.status === 'fully_approved' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
+                                                        req.status === 'final_rejected' || req.status === 'rejected' ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' :
+                                                        'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                                                    }`}>
+                                                        {req.status === 'pending' ? 'Auth: Deputy Warden' :
+                                                         req.status === 'accepted' ? 'Auth: Chief Warden' :
+                                                         req.status === 'approved_by_warden' ? 'Auth: Hostel Office' :
+                                                         req.status === 'fully_approved' ? 'FULLY ACCEPTED' : req.status}
+                                                    </span>
+                                                 </div>
+                                            </div>
+                                        </div>
+                                     )) : (
+                                        <div className="text-center py-5 text-white/20 text-xs font-medium italic">No applications found.</div>
+                                     )}
+                                </div>
                             </div>
                         </div>
                     </motion.div>

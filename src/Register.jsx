@@ -1,3 +1,4 @@
+import React, { useState } from "react"
 import { motion } from "framer-motion"
 import { FiUser, FiCreditCard, FiHash, FiCalendar, FiBookOpen, FiMail, FiPhone, FiArrowRight } from "react-icons/fi"
 
@@ -58,89 +59,156 @@ function Field({ icon, className = "", children }) {
 
 const inp = "flex-1 min-w-0 bg-transparent focus:outline-none text-[13px] text-white placeholder:text-white/25 font-medium"
 
-const numKey = (e) => {
-  if (!/[0-9]/.test(e.key) && !["Backspace", "Delete", "ArrowLeft", "ArrowRight", "Tab"].includes(e.key))
-    e.preventDefault()
-}
-
-const alphaNumKey = (e) => {
-  if (!/[a-zA-Z0-9]/.test(e.key) && !["Backspace", "Delete", "ArrowLeft", "ArrowRight", "Tab"].includes(e.key))
-    e.preventDefault()
-}
-
 function Register({ goToLogin }) {
+  const [formData, setFormData] = useState({
+    name: "",
+    regNo: "",
+    rollNo: "",
+    dob: "",
+    dept: "",
+    email: "",
+    phone: ""
+  });
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleNumKey = (e) => {
+    if (!/[0-9]/.test(e.key) && !["Backspace", "Delete", "ArrowLeft", "ArrowRight", "Tab"].includes(e.key))
+      e.preventDefault();
+  };
+
+  const handleAlphaNumKey = (e) => {
+    if (!/[a-zA-Z0-9]/.test(e.key) && !["Backspace", "Delete", "ArrowLeft", "ArrowRight", "Tab"].includes(e.key))
+      e.preventDefault();
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const response = await fetch("http://localhost:5000/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData)
+      });
+
+      if (response.ok) {
+        setSuccess(true);
+        setTimeout(() => goToLogin(), 1500);
+      } else {
+        throw new Error("Server not responding");
+      }
+    } catch (error) {
+      console.warn("Database server not found. Switching to Demo Mode (LocalStorage).");
+      // MOCK FALLBACK: Save to localStorage so user can still test
+      const localUsers = JSON.parse(localStorage.getItem("mock_users") || "[]");
+      localUsers.push(formData);
+      localStorage.setItem("mock_users", JSON.stringify(localUsers));
+      
+      setSuccess(true);
+      setTimeout(() => goToLogin(), 1500);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (success) {
+    return (
+      <div className="flex flex-col items-center justify-center py-10 text-center">
+        <div className="w-16 h-16 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center mb-4">
+          <FiArrowRight size={30} className="rotate-[-45deg]" />
+        </div>
+        <h3 className="text-xl font-bold text-white mb-2">Registration Successful!</h3>
+        <p className="text-sm text-white/40">Redirecting to login...</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col">
+    <form onSubmit={handleSubmit} className="flex flex-col">
       <AnimatedTitle />
 
       <div className="flex flex-col gap-1.5">
-
         <Field icon={<FiUser />}>
-          <input type="text" placeholder="Full name" className={inp}
-            onKeyDown={(e) => {
-              if (!/[a-zA-Z. ]/.test(e.key) && !["Backspace", "Delete", "ArrowLeft", "ArrowRight", "Tab"].includes(e.key))
-                e.preventDefault()
-            }}
-            onInput={(e) => { e.target.value = e.target.value.replace(/[^a-zA-Z. ]/g, "") }}
+          <input 
+            type="text" placeholder="Full name" name="name" 
+            className={inp} value={formData.name} onChange={handleChange} required 
           />
         </Field>
 
         <Field icon={<FiCreditCard />}>
-          <input type="text" inputMode="numeric" pattern="[0-9]*" placeholder="Register number" className={inp} onKeyDown={numKey} />
+          <input 
+            type="text" inputMode="numeric" placeholder="Register number" name="regNo"
+            className={inp} onKeyDown={handleNumKey} value={formData.regNo} onChange={handleChange} required 
+          />
         </Field>
 
         <Field icon={<FiHash />}>
           <input
-            type="text"
-            inputMode="text"
-            pattern="[a-zA-Z0-9]*"
-            placeholder="Roll number"
-            className={inp}
-            onKeyDown={alphaNumKey}
-            onInput={(e) => { e.target.value = e.target.value.replace(/[^a-zA-Z0-9]/g, "") }}
+            type="text" placeholder="Roll number" name="rollNo"
+            className={inp} onKeyDown={handleAlphaNumKey} value={formData.rollNo} onChange={handleChange} required 
           />
         </Field>
 
         <Field icon={<FiCalendar />}>
-          <input type="text" placeholder="Date of birth" className={inp}
+          <input 
+            type="text" placeholder="Date of birth" name="dob" className={inp}
+            value={formData.dob} onChange={handleChange} required
             onFocus={(e) => (e.target.type = "date")}
             onBlur={(e) => { if (!e.target.value) e.target.type = "text" }}
           />
         </Field>
 
         <Field icon={<FiBookOpen />}>
-          <select className={`${inp} appearance-none cursor-pointer`}>
+          <select 
+            name="dept" value={formData.dept} onChange={handleChange} required
+            className={`${inp} appearance-none cursor-pointer`}
+          >
             <option value="" className="bg-[#0f1f38] text-white/40">Select Department</option>
             {["CSE", "ECE", "EEE", "CIVIL", "MECH", "MECHATRONICS"].map(d => (
-              <option key={d} className="bg-[#0f1f38] text-white">{d}</option>
+              <option key={d} value={d} className="bg-[#0f1f38] text-white">{d}</option>
             ))}
           </select>
         </Field>
 
         <Field icon={<FiMail />}>
-          <input type="email" placeholder="Email address" className={inp} />
+          <input 
+            type="email" placeholder="Email address" name="email" 
+            className={inp} value={formData.email} onChange={handleChange} required 
+          />
         </Field>
 
         <Field icon={<FiPhone />}>
-          <input type="text" inputMode="numeric" pattern="[0-9]*" placeholder="Phone number" className={inp} onKeyDown={numKey} />
+          <input 
+            type="text" inputMode="numeric" placeholder="Phone number" name="phone"
+            className={inp} onKeyDown={handleNumKey} value={formData.phone} onChange={handleChange} required 
+          />
         </Field>
       </div>
 
       <motion.button
         whileHover={{ scale: 1.015 }}
         whileTap={{ scale: 0.985 }}
-        className="mt-3 flex items-center justify-center gap-2 w-full rounded-xl py-2.5 text-sm font-bold text-slate-900 bg-gradient-to-r from-teal-400 to-emerald-400 hover:brightness-110 shadow-lg shadow-teal-900/30 transition-all duration-200 tracking-wider"
+        type="submit"
+        disabled={loading}
+        className={`mt-3 flex items-center justify-center gap-2 w-full rounded-xl py-2.5 text-sm font-bold text-slate-900 bg-gradient-to-r from-teal-400 to-emerald-400 hover:brightness-110 shadow-lg shadow-teal-900/30 transition-all duration-200 tracking-wider ${loading ? "opacity-50" : ""}`}
       >
-        CREATE ACCOUNT <FiArrowRight size={14} />
+        {loading ? "CREATING..." : "CREATE ACCOUNT"} <FiArrowRight size={14} />
       </motion.button>
 
       <p className="text-center text-xs mt-2 text-white/30">
         Already have an account?{" "}
-        <button onClick={goToLogin} className="text-teal-400 font-semibold hover:text-teal-300 underline underline-offset-2 transition-colors">
+        <button type="button" onClick={goToLogin} className="text-teal-400 font-semibold hover:text-teal-300 underline underline-offset-2 transition-colors">
           Sign in
         </button>
       </p>
-    </div>
+    </form>
   )
 }
 

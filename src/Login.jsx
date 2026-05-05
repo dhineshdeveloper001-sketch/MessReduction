@@ -1,3 +1,4 @@
+import React, { useState } from "react"
 import { motion } from "framer-motion"
 import { FiMail, FiCalendar, FiArrowRight } from "react-icons/fi"
 
@@ -56,18 +57,58 @@ function Field({ icon, ...props }) {
   )
 }
 
-function Login({ goToRegister }) {
+function Login({ goToRegister, onLoginSuccess }) {
+  const [email, setEmail] = useState("");
+  const [dob, setDob] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const response = await fetch("http://localhost:5000/users");
+      if (!response.ok) throw new Error("Server down");
+      const users = await response.json();
+      
+      const user = users.find(u => u.email === email && u.dob === dob);
+
+      if (user) {
+        sessionStorage.setItem("currentUser", JSON.stringify(user));
+        if (onLoginSuccess) onLoginSuccess(user);
+      } else {
+        alert("Invalid email or date of birth.");
+      }
+    } catch (error) {
+      console.warn("Database server not found. Checking Demo Mode (LocalStorage).");
+      // MOCK FALLBACK
+      const localUsers = JSON.parse(localStorage.getItem("mock_users") || "[]");
+      const user = localUsers.find(u => u.email === email && u.dob === dob);
+      
+      if (user) {
+        sessionStorage.setItem("currentUser", JSON.stringify(user));
+        if (onLoginSuccess) onLoginSuccess(user);
+      } else {
+        alert("Invalid credentials (Demo Mode).");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className="flex flex-col gap-3">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-3">
       <AnimatedTitle />
 
       <Field
         icon={<FiMail size={15} />}
         type="email" placeholder="Email address"
+        value={email} onChange={(e) => setEmail(e.target.value)} required
       />
       <Field
         icon={<FiCalendar size={15} />}
         type="text" placeholder="Date of birth"
+        value={dob} onChange={(e) => setDob(e.target.value)} required
         onFocus={(e) => (e.target.type = "date")}
         onBlur={(e) => { if (!e.target.value) e.target.type = "text" }}
       />
@@ -75,18 +116,20 @@ function Login({ goToRegister }) {
       <motion.button
         whileHover={{ scale: 1.015 }}
         whileTap={{ scale: 0.985 }}
-        className="mt-3 flex items-center justify-center gap-2 w-full rounded-xl py-3 text-sm font-bold text-slate-900 bg-gradient-to-r from-teal-400 to-emerald-400 hover:brightness-110 shadow-lg shadow-teal-900/30 transition-all duration-200 tracking-wider"
+        type="submit"
+        disabled={loading}
+        className={`mt-3 flex items-center justify-center gap-2 w-full rounded-xl py-3 text-sm font-bold text-slate-900 bg-gradient-to-r from-teal-400 to-emerald-400 hover:brightness-110 shadow-lg shadow-teal-900/30 transition-all duration-200 tracking-wider ${loading ? "opacity-50" : ""}`}
       >
-        SIGN IN <FiArrowRight size={14} />
+        {loading ? "AUTHENTICATING..." : "SIGN IN"} <FiArrowRight size={14} />
       </motion.button>
 
       <p className="text-center text-xs mt-1 text-white/30">
         New student?{" "}
-        <button onClick={goToRegister} className="text-teal-400 font-semibold hover:text-teal-300 underline underline-offset-2 transition-colors">
+        <button type="button" onClick={goToRegister} className="text-teal-400 font-semibold hover:text-teal-300 underline underline-offset-2 transition-colors">
           Create account
         </button>
       </p>
-    </div>
+    </form>
   )
 }
 

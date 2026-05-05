@@ -4,7 +4,7 @@ import Login from "./Login"
 import Register from "./Register"
 import image from "./assets/1000088399.png"
 
-function AuthWrapper() {
+function AuthWrapper({ onLoginSuccess }) {
   const [isLogin, setIsLogin] = useState(true)
 
   return (
@@ -31,7 +31,7 @@ function AuthWrapper() {
 
       {/* ── Main content ── */}
       <main className="flex-1 overflow-y-auto flex flex-col items-center justify-start sm:justify-center px-4 py-4 sm:py-8">
-        <div style={{ perspective: "1200px" }} className="w-full max-w-[400px] my-auto sm:my-0">
+        <div style={{ perspective: "1200px" }} className="w-full max-w-[400px] md:max-w-[480px] lg:max-w-[520px] my-auto sm:my-0">
           <AnimatePresence mode="wait">
             {isLogin ? (
               <motion.div
@@ -46,7 +46,10 @@ function AuthWrapper() {
                 <div className="w-full rounded-2xl border border-white/8 bg-[#0f1f38] shadow-xl overflow-hidden">
                   <div className="h-[2px] bg-gradient-to-r from-transparent via-teal-400/70 to-transparent" />
                   <div className="p-6 sm:p-8">
-                    <Login goToRegister={() => setIsLogin(false)} />
+                    <Login 
+                      goToRegister={() => setIsLogin(false)} 
+                      onLoginSuccess={onLoginSuccess}
+                    />
                   </div>
                 </div>
               </motion.div>
