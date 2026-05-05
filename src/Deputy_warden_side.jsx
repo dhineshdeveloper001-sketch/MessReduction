@@ -69,7 +69,7 @@ function YearStatCard({ year, requests }) {
     );
 }
 
-function Deputy_warden_side() {
+function Deputy_warden_side({ onLogout }) {
     const [view, setView]               = useState("dashboard");
     const [selectedYear, setSelectedYear] = useState("all");
     const [requests, setRequests]       = useState([]);
@@ -80,16 +80,15 @@ function Deputy_warden_side() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await fetch("http://localhost:5000/requests");
-                if (response.ok) {
-                    const data = await response.json();
-                    setRequests(data);
-                } else {
-                    throw new Error();
-                }
-            } catch {
-                const fallback = JSON.parse(localStorage.getItem("mock_requests") || "[]");
-                setRequests(fallback);
+                const token = sessionStorage.getItem("staffToken");
+                const response = await fetch("http://localhost:8081/api/hostelStaff/staff/deputyWarden", {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                if (!response.ok) throw new Error("Failed to fetch");
+                const data = await response.json();
+                setRequests(data);
+            } catch (e) {
+                console.error("Error fetching requests:", e);
             } finally {
                 setIsLoading(false);
             }
@@ -98,35 +97,38 @@ function Deputy_warden_side() {
     }, []);
 
     const handleAction = async (id, newStatus) => {
-        const updated = requests.map(r => r.id === id ? { ...r, status: newStatus } : r);
+        const updated = requests.map(r => r.formId === id ? { ...r, formStatus: newStatus } : r);
         setRequests(updated);
         try {
-            await fetch(`http://localhost:5000/requests/${id}`, {
+            const token = sessionStorage.getItem("staffToken");
+            await fetch(`http://localhost:8081/api/hostelStaff/staff/deputyWarden/${id}`, {
                 method: "PATCH",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`
+                },
                 body: JSON.stringify({ status: newStatus })
             });
-        } catch {
-            const mocked = JSON.parse(localStorage.getItem("mock_requests") || "[]");
-            const idx = mocked.findIndex(r => r.id === id);
-            if (idx !== -1) { mocked[idx].status = newStatus; localStorage.setItem("mock_requests", JSON.stringify(mocked)); }
+        } catch (e) {
+            console.error("Failed to update status:", e);
         }
     };
 
     const handleBulkAction = async (newStatus) => {
-        const updated = requests.map(r => selectedIds.includes(r.id) ? { ...r, status: newStatus } : r);
+        const updated = requests.map(r => selectedIds.includes(r.formId) ? { ...r, formStatus: newStatus } : r);
         setRequests(updated);
-        for (const id of selectedIds) {
-            try {
-                await fetch(`http://localhost:5000/requests/${id}`, {
-                    method: "PATCH", headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ status: newStatus })
-                });
-            } catch {
-                const mocked = JSON.parse(localStorage.getItem("mock_requests") || "[]");
-                const idx = mocked.findIndex(r => r.id === id);
-                if (idx !== -1) { mocked[idx].status = newStatus; localStorage.setItem("mock_requests", JSON.stringify(mocked)); }
-            }
+        try {
+            const token = sessionStorage.getItem("staffToken");
+            await fetch(`http://localhost:8081/api/hostelStaff/staff/deputyWarden/bulk`, {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify({ ids: selectedIds, status: newStatus })
+            });
+        } catch (e) {
+            console.error("Bulk action failed:", e);
         }
         setSelectedIds([]);
     };
@@ -134,23 +136,43 @@ function Deputy_warden_side() {
     const toggleSelect = (id) => setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
 
     const toggleSelectAll = () => {
-        const pendingIds = filteredRequests.filter(r => r.status === "pending").map(r => r.id);
+        const pendingIds = filteredRequests.filter(r => r.formStatus === "PENDING" || r.formStatus === "pending").map(r => r.formId);
         setSelectedIds(selectedIds.length === pendingIds.length && pendingIds.length > 0 ? [] : pendingIds);
     };
 
-    const filteredRequests = requests
-        .filter(r => selectedYear === "all" ? true : r.year === selectedYear)
+    // Map backend field names for display
+    const normalizeReq = (r) => ({
+        ...r,
+        id: r.formId ?? r.id,
+        name: r.studentName ?? r.name,
+        dept: r.department ?? r.dept,
+        year: r.year ? String(r.year) : r.year,
+        status: r.formStatus ?? r.status,
+        leaveDate: r.leaveDate,
+        arrivalDate: r.arrivalDate,
+        totalHolidays: r.totalHolidays,
+        room: r.roomNo ?? r.room,
+    });
+
+    const normalizedRequests = requests.map(normalizeReq);
+
+    const filteredRequests = normalizedRequests
+        .filter(r => selectedYear === "all" ? true : String(r.year) === selectedYear.replace('st','').replace('nd','').replace('rd','').replace('th',''))
         .filter(r => search === "" ? true :
             r.name?.toLowerCase().includes(search.toLowerCase()) ||
             String(r.id)?.toLowerCase().includes(search.toLowerCase()) ||
             r.dept?.toLowerCase().includes(search.toLowerCase())
         );
 
+    const isPending = (r) => ["PENDING","pending"].includes(r.status);
+    const isAccepted = (r) => ["ACCEPTED_BY_DEPUTY","accepted","APPROVED_BY_WARDEN","approved_by_warden","FULLY_APPROVED","fully_approved"].includes(r.status);
+    const isRejected = (r) => ["REJECTED_BY_DEPUTY","rejected","REJECTED_BY_WARDEN","final_rejected"].includes(r.status);
+
     // Dashboard aggregates
-    const totalForms     = requests.length;
-    const totalPending   = requests.filter(r => r.status === "pending").length;
-    const totalAccepted  = requests.filter(r => ["accepted","approved_by_warden","fully_approved"].includes(r.status)).length;
-    const totalRejected  = requests.filter(r => ["rejected","final_rejected"].includes(r.status)).length;
+    const totalForms     = normalizedRequests.length;
+    const totalPending   = normalizedRequests.filter(isPending).length;
+    const totalAccepted  = normalizedRequests.filter(isAccepted).length;
+    const totalRejected  = normalizedRequests.filter(isRejected).length;
 
     if (isLoading) {
         return (
@@ -204,6 +226,11 @@ function Deputy_warden_side() {
                         <FiList size={15} /> Requests
                     </button>
                 </div>
+                {onLogout && (
+                    <button onClick={onLogout} className="flex items-center gap-2 px-4 py-2 border border-rose-500/20 rounded-xl text-[10px] font-black text-rose-400 uppercase tracking-widest hover:bg-rose-500 hover:text-white hover:border-rose-500 transition-all">
+                        <FiUsers size={13} /> Logout
+                    </button>
+                )}
             </header>
 
             {/* ── Main Content ── */}
@@ -401,7 +428,7 @@ function Deputy_warden_side() {
                                                         className={`group hover:bg-white/[0.02] transition-colors ${selectedIds.includes(req.id) ? "bg-teal-500/[0.03]" : ""}`}
                                                     >
                                                         <td className="px-6 py-5 text-center">
-                                                            {req.status === "pending" && (
+                                                            {isPending(req) && (
                                                                 <button onClick={() => toggleSelect(req.id)} className={`p-2 rounded-xl transition-all ${selectedIds.includes(req.id) ? "bg-teal-500/20 text-teal-400" : "bg-white/5 text-white/10 group-hover:text-white/30"}`}>
                                                                     {selectedIds.includes(req.id) ? <FiCheckSquare size={17} /> : <FiSquare size={17} />}
                                                                 </button>
@@ -440,34 +467,29 @@ function Deputy_warden_side() {
                                                         </td>
                                                         <td className="px-4 py-5 text-center">
                                                             <motion.div layout className={`inline-flex px-3 py-1 rounded-xl border text-[9px] font-black uppercase tracking-widest ${
-                                                                req.status === "accepted" || req.status === "approved_by_warden" || req.status === "fully_approved"
+                                                                isAccepted(req)
                                                                     ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-                                                                    : req.status === "rejected" || req.status === "final_rejected"
+                                                                    : isRejected(req)
                                                                     ? "bg-rose-500/10 text-rose-400 border-rose-500/20"
                                                                     : "bg-amber-500/10 text-amber-400 border-amber-500/20"
                                                             }`}>
-                                                                {req.status === "pending" ? "Pending" :
-                                                                 req.status === "accepted" ? "Approved" :
-                                                                 req.status === "approved_by_warden" ? "Warden ✓" :
-                                                                 req.status === "fully_approved" ? "Complete" :
-                                                                 req.status === "rejected" ? "Rejected" :
-                                                                 req.status === "final_rejected" ? "Fin. Rejected" : req.status}
+                                                                {isPending(req) ? "Pending" :
+                                                                 isAccepted(req) ? "Approved" :
+                                                                 isRejected(req) ? "Rejected" : req.status}
                                                             </motion.div>
                                                         </td>
                                                         <td className="px-6 py-5 text-right">
-                                                            {req.status === "pending" ? (
+                                                            {isPending(req) ? (
                                                                 <div className="flex justify-end gap-2">
-                                                                    <button onClick={() => handleAction(req.id, "accepted")} className="p-2.5 bg-emerald-500/10 text-emerald-400 rounded-2xl hover:bg-emerald-500 hover:text-slate-900 transition-all duration-300 border border-emerald-500/10 hover:shadow-[0_0_20px_rgba(16,185,129,0.4)]">
+                                                                    <button onClick={() => handleAction(req.id, "ACCEPTED_BY_DEPUTY")} className="p-2.5 bg-emerald-500/10 text-emerald-400 rounded-2xl hover:bg-emerald-500 hover:text-slate-900 transition-all duration-300 border border-emerald-500/10 hover:shadow-[0_0_20px_rgba(16,185,129,0.4)]">
                                                                         <FiCheck size={16} />
                                                                     </button>
-                                                                    <button onClick={() => handleAction(req.id, "rejected")} className="p-2.5 bg-rose-500/10 text-rose-400 rounded-2xl hover:bg-rose-500 hover:text-white transition-all duration-300 border border-rose-500/10 hover:shadow-[0_0_20px_rgba(244,63,94,0.4)]">
+                                                                    <button onClick={() => handleAction(req.id, "REJECTED_BY_DEPUTY")} className="p-2.5 bg-rose-500/10 text-rose-400 rounded-2xl hover:bg-rose-500 hover:text-white transition-all duration-300 border border-rose-500/10 hover:shadow-[0_0_20px_rgba(244,63,94,0.4)]">
                                                                         <FiX size={16} />
                                                                     </button>
                                                                 </div>
                                                             ) : (
-                                                                <button onClick={() => handleAction(req.id, "pending")} className="px-3 py-1.5 text-[8px] font-black text-white/20 hover:text-teal-400 uppercase tracking-widest border border-white/5 rounded-xl hover:border-teal-500/30 transition-all">
-                                                                    Reset
-                                                                </button>
+                                                                <span className="text-white/20 text-xs font-medium">—</span>
                                                             )}
                                                         </td>
                                                     </motion.tr>

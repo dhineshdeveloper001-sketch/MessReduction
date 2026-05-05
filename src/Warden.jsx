@@ -80,7 +80,7 @@ function YearSelectScreen({ onSelect }) {
 }
 
 /* ── Main Warden Panel ── */
-const Warden = ({ assignedYear = null }) => {
+const Warden = ({ assignedYear = null, onLogout }) => {
     // If a URL-level year was provided, start there directly (no selection screen)
     const [selectedYear, setSelectedYear] = useState(assignedYear);
     const [requests, setRequests]         = useState([]);
@@ -93,30 +93,35 @@ const Warden = ({ assignedYear = null }) => {
 
     const fetchRequests = async () => {
         try {
-            const response = await fetch("http://localhost:5000/requests");
+            const token = sessionStorage.getItem("staffToken");
+            const response = await fetch("http://localhost:8081/api/hostelStaff/staff/warden", {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (!response.ok) throw new Error("Failed to fetch");
             const data = await response.json();
             setRequests(data);
-        } catch {
-            const mocked = JSON.parse(localStorage.getItem("mock_requests") || "[]");
-            setRequests(mocked);
+        } catch (e) {
+            console.error("Error fetching requests:", e);
         } finally {
             setLoading(false);
         }
     };
 
     const handleFinalAction = async (id, newStatus) => {
-        const updated = requests.map(r => r.id === id ? { ...r, status: newStatus } : r);
+        const updated = requests.map(r => r.formId === id ? { ...r, formStatus: newStatus } : r);
         setRequests(updated);
         try {
-            await fetch(`http://localhost:5000/requests/${id}`, {
+            const token = sessionStorage.getItem("staffToken");
+            await fetch(`http://localhost:8081/api/hostelStaff/staff/warden/${id}`, {
                 method: "PATCH",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`
+                },
                 body: JSON.stringify({ status: newStatus })
             });
-        } catch {
-            const mocked = JSON.parse(localStorage.getItem("mock_requests") || "[]");
-            const idx = mocked.findIndex(r => r.id === id);
-            if (idx !== -1) { mocked[idx].status = newStatus; localStorage.setItem("mock_requests", JSON.stringify(mocked)); }
+        } catch (e) {
+            console.error("Failed to update status:", e);
         }
     };
 
@@ -127,12 +132,12 @@ const Warden = ({ assignedYear = null }) => {
 
     const t = YEAR_THEME[selectedYear];
 
-    // Filter requests: Warden only sees requests that belong to their assigned year AND were accepted by Deputy Warden
-    const allForYear       = requests.filter(r => r.year === selectedYear);
-    const pendingFinal     = allForYear.filter(r => r.status === "accepted");
-    const finalized        = allForYear.filter(r => ["approved_by_warden", "final_rejected"].includes(r.status));
+    // Filter requests: Warden only sees requests for their year, awaiting their approval
+    const allForYear       = requests.filter(r => String(r.year) === selectedYear.replace('st','').replace('nd','').replace('rd','').replace('th',''));
+    const pendingFinal     = allForYear.filter(r => r.formStatus === "ACCEPTED_BY_DEPUTY" || r.formStatus === "accepted");
+    const finalized        = allForYear.filter(r => ["APPROVED_BY_WARDEN","approved_by_warden","REJECTED_BY_WARDEN","final_rejected"].includes(r.formStatus));
     const totalForYear     = allForYear.length;
-    const approvedCount    = allForYear.filter(r => r.status === "approved_by_warden" || r.status === "fully_approved").length;
+    const approvedCount    = allForYear.filter(r => ["APPROVED_BY_WARDEN","approved_by_warden","FULLY_APPROVED","fully_approved"].includes(r.formStatus)).length;
 
     if (loading) {
         return (
@@ -165,13 +170,20 @@ const Warden = ({ assignedYear = null }) => {
                         <div className={`w-2 h-2 rounded-full ${t.active} animate-pulse`} />
                         <span className={`text-xs font-black uppercase tracking-widest ${t.text}`}>{selectedYear} Year Warden</span>
                     </div>
-                    {/* Switch Year only available when arrived via /warden (no assignedYear prop) */}
                     {!assignedYear && (
                         <button
                             onClick={() => setSelectedYear(null)}
                             className="flex items-center gap-2 px-4 py-2 border border-white/10 rounded-xl text-[10px] font-black text-white/30 uppercase tracking-widest hover:text-white hover:border-white/20 transition-all"
                         >
                             <FiLogOut size={13} /> Switch Year
+                        </button>
+                    )}
+                    {onLogout && (
+                        <button
+                            onClick={onLogout}
+                            className="flex items-center gap-2 px-4 py-2 border border-rose-500/20 rounded-xl text-[10px] font-black text-rose-400 uppercase tracking-widest hover:bg-rose-500 hover:text-white hover:border-rose-500 transition-all"
+                        >
+                            <FiLogOut size={13} /> Logout
                         </button>
                     )}
                 </div>
@@ -343,16 +355,18 @@ const Warden = ({ assignedYear = null }) => {
                                             {/* Status badge */}
                                             <td className="px-4 py-5 text-center">
                                                 <span className={`inline-flex px-3 py-1 rounded-xl border text-[9px] font-black uppercase tracking-widest ${
-                                                    req.status === "approved_by_warden" || req.status === "fully_approved"
+                                                    ["approved_by_warden","APPROVED_BY_WARDEN","fully_approved","FULLY_APPROVED"].includes(req.formStatus ?? req.status)
                                                         ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-                                                        : req.status === "final_rejected"
+                                                        : ["final_rejected","REJECTED_BY_WARDEN"].includes(req.formStatus ?? req.status)
                                                         ? "bg-rose-500/10 text-rose-400 border-rose-500/20"
                                                         : "bg-amber-500/10 text-amber-400 border-amber-500/20"
                                                 }`}>
-                                                    {req.status === "accepted"           ? "Pending"         :
-                                                     req.status === "approved_by_warden" ? "Approved"        :
-                                                     req.status === "fully_approved"     ? "Office Done"     :
-                                                     req.status === "final_rejected"     ? "Rejected"        : req.status}
+                                                    {(req.formStatus ?? req.status) === "ACCEPTED_BY_DEPUTY"   ? "Pending"   :
+                                                     (req.formStatus ?? req.status) === "APPROVED_BY_WARDEN"   ? "Approved"  :
+                                                     (req.formStatus ?? req.status) === "REJECTED_BY_WARDEN"   ? "Rejected"  :
+                                                     (req.formStatus ?? req.status) === "approved_by_warden"   ? "Approved"  :
+                                                     (req.formStatus ?? req.status) === "final_rejected"       ? "Rejected"  :
+                                                     (req.formStatus ?? req.status)}
                                                 </span>
                                             </td>
 
@@ -361,14 +375,14 @@ const Warden = ({ assignedYear = null }) => {
                                                 {view === "pending_final" ? (
                                                     <div className="flex justify-end gap-2">
                                                         <button
-                                                            onClick={() => handleFinalAction(req.id, "approved_by_warden")}
+                                                            onClick={() => handleFinalAction(req.formId, "APPROVED_BY_WARDEN")}
                                                             className="p-2.5 bg-emerald-500/10 text-emerald-400 rounded-2xl hover:bg-emerald-500 hover:text-slate-900 transition-all duration-300 border border-emerald-500/10 hover:shadow-[0_0_20px_rgba(16,185,129,0.4)]"
                                                             title="Approve"
                                                         >
                                                             <FiCheck size={16} />
                                                         </button>
                                                         <button
-                                                            onClick={() => handleFinalAction(req.id, "final_rejected")}
+                                                            onClick={() => handleFinalAction(req.formId, "REJECTED_BY_WARDEN")}
                                                             className="p-2.5 bg-rose-500/10 text-rose-400 rounded-2xl hover:bg-rose-500 hover:text-white transition-all duration-300 border border-rose-500/10 hover:shadow-[0_0_20px_rgba(244,63,94,0.4)]"
                                                             title="Reject"
                                                         >
@@ -376,12 +390,7 @@ const Warden = ({ assignedYear = null }) => {
                                                         </button>
                                                     </div>
                                                 ) : (
-                                                    <button
-                                                        onClick={() => handleFinalAction(req.id, "accepted")}
-                                                        className="px-3 py-1.5 text-[8px] font-black text-white/20 hover:text-teal-400 uppercase tracking-widest border border-white/5 rounded-xl hover:border-teal-500/30 transition-all"
-                                                    >
-                                                        Reset
-                                                    </button>
+                                                    <span className="text-white/20 text-xs font-medium">—</span>
                                                 )}
                                             </td>
                                         </motion.tr>

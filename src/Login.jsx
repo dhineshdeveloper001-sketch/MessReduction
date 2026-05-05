@@ -58,7 +58,7 @@ function Field({ icon, ...props }) {
 }
 
 function Login({ goToRegister, onLoginSuccess }) {
-  const [email, setEmail] = useState("");
+  const [emailId, setEmailId] = useState("");
   const [dob, setDob] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -67,30 +67,30 @@ function Login({ goToRegister, onLoginSuccess }) {
     setLoading(true);
 
     try {
-      const response = await fetch("http://localhost:5000/users");
-      if (!response.ok) throw new Error("Server down");
-      const users = await response.json();
-      
-      const user = users.find(u => u.email === email && u.dob === dob);
+      const response = await fetch("http://localhost:8081/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ emailId, dob })
+      });
 
-      if (user) {
-        sessionStorage.setItem("currentUser", JSON.stringify(user));
-        if (onLoginSuccess) onLoginSuccess(user);
-      } else {
-        alert("Invalid email or date of birth.");
+      if (!response.ok) {
+        const err = await response.text();
+        throw new Error(err || "Invalid credentials");
       }
-    } catch (error) {
-      console.warn("Database server not found. Checking Demo Mode (LocalStorage).");
-      // MOCK FALLBACK
-      const localUsers = JSON.parse(localStorage.getItem("mock_users") || "[]");
-      const user = localUsers.find(u => u.email === email && u.dob === dob);
+
+      const data = await response.json();
       
-      if (user) {
-        sessionStorage.setItem("currentUser", JSON.stringify(user));
-        if (onLoginSuccess) onLoginSuccess(user);
-      } else {
-        alert("Invalid credentials (Demo Mode).");
-      }
+      // Save token and user details
+      sessionStorage.setItem("token", data.token);
+      sessionStorage.setItem("currentUser", JSON.stringify({
+        id: data.studentId,
+        name: data.name,
+        email: emailId
+      }));
+
+      if (onLoginSuccess) onLoginSuccess(data);
+    } catch (error) {
+      alert("Login failed: " + error.message);
     } finally {
       setLoading(false);
     }
@@ -103,7 +103,7 @@ function Login({ goToRegister, onLoginSuccess }) {
       <Field
         icon={<FiMail size={15} />}
         type="email" placeholder="Email address"
-        value={email} onChange={(e) => setEmail(e.target.value)} required
+        value={emailId} onChange={(e) => setEmailId(e.target.value)} required
       />
       <Field
         icon={<FiCalendar size={15} />}

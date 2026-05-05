@@ -62,12 +62,12 @@ const inp = "flex-1 min-w-0 bg-transparent focus:outline-none text-[13px] text-w
 function Register({ goToLogin }) {
   const [formData, setFormData] = useState({
     name: "",
-    regNo: "",
+    registerNo: "",
     rollNo: "",
     dob: "",
-    dept: "",
-    email: "",
-    phone: ""
+    department: "",
+    emailId: "",
+    phoneNo: ""
   });
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -92,7 +92,7 @@ function Register({ goToLogin }) {
     setLoading(true);
 
     try {
-      const response = await fetch("http://localhost:5000/users", {
+      const response = await fetch("http://localhost:8081/api/student/reg", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData)
@@ -102,17 +102,11 @@ function Register({ goToLogin }) {
         setSuccess(true);
         setTimeout(() => goToLogin(), 1500);
       } else {
-        throw new Error("Server not responding");
+        const err = await response.text();
+        throw new Error(err || "Server not responding");
       }
     } catch (error) {
-      console.warn("Database server not found. Switching to Demo Mode (LocalStorage).");
-      // MOCK FALLBACK: Save to localStorage so user can still test
-      const localUsers = JSON.parse(localStorage.getItem("mock_users") || "[]");
-      localUsers.push(formData);
-      localStorage.setItem("mock_users", JSON.stringify(localUsers));
-      
-      setSuccess(true);
-      setTimeout(() => goToLogin(), 1500);
+      alert("Registration failed: " + error.message);
     } finally {
       setLoading(false);
     }
@@ -144,8 +138,8 @@ function Register({ goToLogin }) {
 
         <Field icon={<FiCreditCard />}>
           <input 
-            type="text" inputMode="numeric" placeholder="Register number" name="regNo"
-            className={inp} onKeyDown={handleNumKey} value={formData.regNo} onChange={handleChange} required 
+            type="text" inputMode="numeric" placeholder="Register number" name="registerNo"
+            className={inp} onKeyDown={handleNumKey} value={formData.registerNo} onChange={handleChange} required 
           />
         </Field>
 
@@ -167,7 +161,7 @@ function Register({ goToLogin }) {
 
         <Field icon={<FiBookOpen />}>
           <select 
-            name="dept" value={formData.dept} onChange={handleChange} required
+            name="department" value={formData.department} onChange={handleChange} required
             className={`${inp} appearance-none cursor-pointer`}
           >
             <option value="" className="bg-[#0f1f38] text-white/40">Select Department</option>
@@ -179,15 +173,15 @@ function Register({ goToLogin }) {
 
         <Field icon={<FiMail />}>
           <input 
-            type="email" placeholder="Email address" name="email" 
-            className={inp} value={formData.email} onChange={handleChange} required 
+            type="email" placeholder="Email address" name="emailId" 
+            className={inp} value={formData.emailId} onChange={handleChange} required 
           />
         </Field>
 
         <Field icon={<FiPhone />}>
           <input 
-            type="text" inputMode="numeric" placeholder="Phone number" name="phone"
-            className={inp} onKeyDown={handleNumKey} value={formData.phone} onChange={handleChange} required 
+            type="text" inputMode="numeric" placeholder="Phone number" name="phoneNo"
+            className={inp} onKeyDown={handleNumKey} value={formData.phoneNo} onChange={handleChange} required 
           />
         </Field>
       </div>

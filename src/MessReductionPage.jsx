@@ -86,28 +86,44 @@ function MessReductionPage() {
     const [myRequests, setMyRequests] = useState([])
 
     useEffect(() => {
-        // Auto-fill from session storage if available
         const savedUser = sessionStorage.getItem("currentUser");
         if (savedUser) {
             const user = JSON.parse(savedUser);
-            setFormData(prev => ({
-                ...prev,
-                name: user.name || "",
-                id: user.regNo || "",
-                dept: user.dept || ""
-            }));
-            fetchMyRequests(user.regNo);
+            const studentId = user.id;
+            if (studentId) fetchStudentData(studentId);
         }
     }, []);
 
-    const fetchMyRequests = async (regNo) => {
+    const fetchStudentData = async (studentId) => {
         try {
-            const response = await fetch("http://localhost:5000/requests");
-            const data = await response.json();
-            setMyRequests(data.filter(r => String(r.id) === String(regNo)));
+            const token = sessionStorage.getItem("token");
+            const response = await fetch(`http://localhost:8081/api/student-form/StudentForm/${studentId}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (!response.ok) throw new Error("Failed to fetch");
+            const student = await response.json();
+            setFormData(prev => ({
+                ...prev,
+                name: student.name || "",
+                dept: student.department || "",
+            }));
+            fetchMyRequests(studentId);
         } catch (e) {
-            const mocked = JSON.parse(localStorage.getItem("mock_requests") || "[]");
-            setMyRequests(mocked.filter(r => String(r.id) === String(regNo)));
+            console.error("Failed to load student data:", e);
+        }
+    };
+    const fetchMyRequests = async (studentId) => {
+        try {
+            const token = sessionStorage.getItem("token");
+            const response = await fetch(`http://localhost:8081/api/student-form/StudentForm/${studentId}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (response.ok) {
+                const forms = await response.json();
+                setMyRequests(Array.isArray(forms) ? forms : []);
+            }
+        } catch (e) {
+            console.error("Failed to load requests:", e);
         }
     };
 
@@ -120,32 +136,40 @@ function MessReductionPage() {
         e.preventDefault();
         setIsSubmitting(true);
 
+        const savedUser = JSON.parse(sessionStorage.getItem("currentUser") || "{}");
+        const studentId = savedUser.id;
+        const token = sessionStorage.getItem("token");
+
+        // Build DTO matching backend ReductionFormReqDTO
         const submissionData = {
-            ...formData,
-            id: String(formData.id), // Standardize ID as string
+            year: parseInt(formData.year),
+            roomNo: parseInt(formData.room) || 0,
+            leaveDate: formData.leaveDate,
+            leaveTime: formData.leaveTime + ":00",
+            arrivalDate: formData.arrivalDate,
+            arrivalTime: formData.arrivalTime + ":00",
             reason: formData.reason === "other" ? formData.otherReason : formData.reason,
-            status: "pending"
         };
 
         try {
-            const response = await fetch("http://localhost:5000/requests", {
+            const response = await fetch(`http://localhost:8081/api/student-form/StudentForm/${studentId}`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`
+                },
                 body: JSON.stringify(submissionData)
             });
 
             if (response.ok) {
                 setIssubmitted(true);
-                // Optional: Clear form or show success
+                fetchMyRequests(studentId);
             } else {
-                console.error("Submission failed");
-                // Fallback for demo if server not running
-                setIssubmitted(true);
+                const msg = await response.text();
+                alert("Submission failed: " + msg);
             }
         } catch (error) {
-            console.error("Error submitting form:", error);
-            // Fallback for demo
-            setIssubmitted(true);
+            alert("Error submitting form: " + error.message);
         } finally {
             setIsSubmitting(false);
         }
